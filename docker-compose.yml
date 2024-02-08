@@ -1,0 +1,27 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+# https://hub.docker.com/_/postgres
+# https://github.com/cookiecutter/cookiecutter-django
+# https://cookiecutter-django.readthedocs.io/en/latest/developing-locally-docker.html
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: alquilar-patines
+    container_name: alquilar-patines
+    env_file:
+      - ./.envs/.local/.postgres
+
+    volumes:
+      - alquilar-patines:/var/lib/postgresql/data
+      # - drf-tutorials_data_backups:/backups
+    ports:
+      - 5435:5432
+
+volumes:
+  alquilar-patines:
+  # drf-tutorials_data_backups:
+
+
