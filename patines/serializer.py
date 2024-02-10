@@ -12,9 +12,17 @@ class PatineteSerializer(serializers.HyperlinkedModelSerializer):
 
 class AlquilerSerializer(serializers.HyperlinkedModelSerializer):
     patinete = serializers.PrimaryKeyRelatedField(queryset=Patinete.objects.all())
+    usuario = serializers.SerializerMethodField()
+
     class Meta:
         model = Alquiler
-        fields = ['patinete', 'url', 'fecha_desbloqueo', 'fecha_entrega', 'coste_final']
+        fields = ['patinete', 'usuario', 'fecha_desbloqueo', 'fecha_entrega', 'coste_final', 'url']
+
+    def get_usuario(self, obj):
+        """
+        Devuelve el nombre del usuario en lugar del id
+        """
+        return obj.usuario.username
 
 
 class UsuarioSerializer(serializers.HyperlinkedModelSerializer):

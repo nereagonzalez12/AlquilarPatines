@@ -5,6 +5,7 @@ from patines import views
 router = DefaultRouter()
 router.register(r'patinetes', views.PatineteViewSet, basename='patinete')
 router.register(r'alquiler', views.AlquilerViewSet, basename='alquiler')
+router.register(r'alquileres', views.ListadoAlquilerViewSet, basename='alquileres')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -27,7 +27,7 @@ class PatineteViewSet(viewsets.ModelViewSet):
 
 
 # ALQUILAR #
-class AlquilerViewSet(viewsets.ModelViewSet):
+class AlquilerViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin):
     serializer_class = AlquilerSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -87,3 +87,12 @@ class AlquilerViewSet(viewsets.ModelViewSet):
                 alquiler.save()
                 print('se ha liberado la patineta')
                 return Response({'message': 'El patinete ha sido liberado.'}, status=status.HTTP_200_OK)
+
+
+class ListadoAlquilerViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    Clase para listar todos los alquileres de los usuarios
+    """
+    queryset = Alquiler.objects.all()
+    serializer_class = AlquilerSerializer
+    permission_classes = [permissions.IsAdminUser]
