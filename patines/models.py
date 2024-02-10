@@ -12,7 +12,6 @@ class Patinete(models.Model):
     tipo = models.CharField(max_length=50)
     precio_desbloqueo = models.DecimalField(max_digits=12, decimal_places=2)
     precio_minuto = models.DecimalField(max_digits=12, decimal_places=2)
-    estado_alquiler = models.CharField(max_length=50)
 
     def __str__(self):
         return f"{self.tipo} - {self.numero}"
@@ -29,8 +28,15 @@ class Alquiler(models.Model):
     def __str__(self):
         return f"{self.patine} {self.estado} [ alquilado por {self.usuario} ]"
 
+    class Meta:
+        verbose_name_plural = "Alquileres"
+        ordering = ["fecha_entrega"]
+
 
 # Clase usuario con campo adicional
 class Usuario(models.Model):
     usuario = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     debito = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def __str__(self):
+        return self.user.username
