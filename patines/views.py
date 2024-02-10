@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 import django_filters.rest_framework
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -16,7 +17,7 @@ from rest_framework.response import Response
 from django.db.models import F
 
 from patines.models import Patinete, Alquiler
-from patines.serializer import PatineteSerializer, AlquilerSerializer
+from patines.serializer import PatineteSerializer, AlquilerSerializer, UsuarioSerializer
 
 
 # Create your views here.
@@ -28,7 +29,7 @@ class PatineteViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(name='estado', description='Filtro por estado de alquiler', required=False, type=bool)
+            OpenApiParameter(name='estado-alquilado', description='Filtro por estado de alquiler', required=False)
         ]
     )
     # Filtrar por estado de alquiler
@@ -38,6 +39,11 @@ class PatineteViewSet(viewsets.ModelViewSet):
         serializer = PatineteSerializer(patinetes, many=True, context={'request': request})
         return Response(serializer.data)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='estado-libre', description='Filtro por estado de alquiler', required=False)
+        ]
+    )
     @action(detail=False, methods=['GET'])
     def patinetes_libres(self, request):
         patinetes = Patinete.objects.filter(estado_alquiler=False)
@@ -120,10 +126,12 @@ class ListadoAlquilerViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAdminUser]
 
 
-class PatinesLibresViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+
+
+class UsuariosViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     Clase para listar todos los patines libres
     """
-    queryset = Patinete.objects.filter(estado_alquiler=False)
-    serializer_class = Patinete
+    queryset = User.objects.all().order_by('-debito')
+    serializer_class = UsuarioSerializer
     permission_classes = [permissions.IsAdminUser]

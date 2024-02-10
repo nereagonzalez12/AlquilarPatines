@@ -20,12 +20,13 @@ class AlquilerSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_usuario(self, obj):
         """
-        Devuelve el nombre del usuario en lugar del id
+        Devuelve el nombre de usuario en lugar del id
         """
         return obj.usuario.username
 
 
 class UsuarioSerializer(serializers.HyperlinkedModelSerializer):
+    debito = serializers.DecimalField(max_digits=10, decimal_places=2)
     class Meta:
         model = User
         fields = ['url', 'id', 'username', 'debito']
