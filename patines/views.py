@@ -5,6 +5,7 @@ import django_filters.rest_framework
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, viewsets, status, mixins, serializers
 from rest_framework import permissions
 
@@ -25,9 +26,28 @@ class PatineteViewSet(viewsets.ModelViewSet):
     serializer_class = PatineteSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='estado', description='Filtro por estado de alquiler', required=False, type=bool)
+        ]
+    )
+    # Filtrar por estado de alquiler
+    @action(detail=False, methods=['GET'])
+    def patinetes_alquilados(self, request):
+        patinetes = Patinete.objects.filter(estado_alquiler=True)
+        serializer = PatineteSerializer(patinetes, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def patinetes_libres(self, request):
+        patinetes = Patinete.objects.filter(estado_alquiler=False)
+        serializer = PatineteSerializer(patinetes, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 # ALQUILAR #
-class AlquilerViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin):
+class AlquilerViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,
+                      mixins.RetrieveModelMixin):
     serializer_class = AlquilerSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -64,13 +84,15 @@ class AlquilerViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Cre
         with transaction.atomic():
             if patinete.estado_alquiler:
                 print(type(patinete))
-                alquiler = get_object_or_404(Alquiler, patinete=patinete, usuario=request.user, fecha_entrega__isnull=True)
+                alquiler = get_object_or_404(Alquiler, patinete=patinete, usuario=request.user,
+                                             fecha_entrega__isnull=True)
                 # Obtener el alquiler del patinete
 
                 # Calcular el coste final
                 tiempo_alquilado = timezone.now() - alquiler.fecha_desbloqueo
                 tiempo_total_minutos = Decimal(str(tiempo_alquilado.total_seconds())) / Decimal('60')
-                coste_final = tiempo_total_minutos * Decimal(str(alquiler.patinete.precio_minuto)) + patinete.precio_desbloqueo
+                coste_final = tiempo_total_minutos * Decimal(
+                    str(alquiler.patinete.precio_minuto)) + patinete.precio_desbloqueo
                 alquiler.coste_final = coste_final
 
                 # Aumentar el débito del usuario
@@ -95,4 +117,13 @@ class ListadoAlquilerViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     queryset = Alquiler.objects.all()
     serializer_class = AlquilerSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class PatinesLibresViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    Clase para listar todos los patines libres
+    """
+    queryset = Patinete.objects.filter(estado_alquiler=False)
+    serializer_class = Patinete
     permission_classes = [permissions.IsAdminUser]
